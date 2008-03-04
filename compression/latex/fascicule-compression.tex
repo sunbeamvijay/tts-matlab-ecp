@@ -1,0 +1,92 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage[dvips]{graphicx}
+%\usepackage{times}
+
+% Mathematical definition
+\usepackage{amsthm}
+\newtheorem{property}{Property}%[section]
+\newtheorem{theorem}{Theorem}%[section]
+\newtheorem{lemma}{Proposition}%[section]
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}%[section]
+\newtheorem{define}{Definition}%[section]
+\newtheorem{definition}{Definition}%[section]
+
+% Algorithm
+\usepackage[ruled]{algorithm2e}
+
+% Useful Mathematical command
+\usepackage{amsfonts}% to get the \mathbb alphabet
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\C}{\field{C}}
+\newcommand{\N}{\field{N}}
+\newcommand{\K}{\field{K}}
+\newcommand{\R}{\field{R}}
+%\newcommand{\M}{\mathcal{M}}
+\providecommand{\abs}[1]{ \left| #1  \right|}%{\lvert#1\rvert}
+\providecommand{\norm}[1]{\left\Vert #1 \right\Vert}
+\newcommand{\mathand}{\quad\text{ and }\quad}
+
+
+\begin{document}
+
+\tableofcontents
+
+\section{Compression avec perte}
+
+\section{Compression sans perte}
+\subsection{theory}
+\subsection{codage entropique}
+=> huffman <=
+arithmetic
+\subsection{model}
+=> static <=
+
+/dynamic
+avec contexe PPM
+
+=> dictionnaire Lempel-Ziv-Welch (LZW) <=
+
+DEFLATE is a lossless data compression algorithm that uses a combination of the LZ77 algorithm and Huffman coding => zipformat
+
+\section{Fonctions Matlab}
+
+sum
+zeros
+
+==, >, < vectorialise
+
+plot, bar
+
+sort
+
+isstruct
+
+\{ \} => cells
+
+reshape
+
+char
+
+cree function et function intern
+
+trouver lena plus petit
+
+\section{TD}
+
+\subsection{Compression sans perte}
+Ecrire une fonction renvoyant la probabilite statique d'apparation d'un symbole dans un message. On prendra comme alphabet les nombres de 0 à 255, ce qui correspond à un octet.
+
+Tracer le resultat pour l'image de lena et le texte
+
+donner la construction de l'arbre de huffman
+
+% biblio
+%http://en.wikipedia.org/wiki/Information_theory
+%http://www.cs.cmu.edu/afs/cs/project/pscico-guyb/realworld/www/compression.pdf
+%http://en.wikipedia.org/wiki/DEFLATE
+%http://en.wikipedia.org/wiki/JPEG
+
+\end{document}
