@@ -11,6 +11,8 @@ function [ tree, leaf ] = huffman( in )
     freq_total = sum(frequence);
     frequence = frequence/freq_total;
     
+    plot(0:255,frequence);
+    
     [proba,value] = sort(frequence);
     value = value-1;
     
