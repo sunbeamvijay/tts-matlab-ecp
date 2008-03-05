@@ -1,5 +1,13 @@
 
 function notes = ExtractPartition(lfreq,duree,tempo)
+% Genere la partition ABC à partir de:
+% - tempo: durée de la note de base
+% - lfreq: tableau contenant le log10 de la frequence des notes
+% - duree: tableau contenant la durée des notes
+%
+% lfreq et duree doivent faire la meme taille
+%
+
     N = length(lfreq);
     % lfreq = log10(freq)
     
