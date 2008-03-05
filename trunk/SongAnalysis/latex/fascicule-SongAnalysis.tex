@@ -1,0 +1,222 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{graphicx}
+%\usepackage{times}
+\usepackage[latin1]{inputenc} % charactère accentué
+%\usepackage[colorlinks=false,linkcolor=blue]{hyperref}
+\usepackage[pdftex,colorlinks=true,linkcolor=blue]{hyperref}
+
+% Mathematical definition
+\usepackage{amsthm}
+\newtheorem{property}{Property}%[section]
+\newtheorem{theorem}{Theorem}%[section]
+\newtheorem{lemma}{Proposition}%[section]
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}%[section]
+\newtheorem{define}{Definition}%[section]
+\newtheorem{definition}{Definition}%[section]
+
+% Algorithm
+\usepackage[ruled]{algorithm2e}
+
+% Useful Mathematical command
+\usepackage{amsfonts}% to get the \mathbb alphabet
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\C}{\field{C}}
+\newcommand{\N}{\field{N}}
+\newcommand{\K}{\field{K}}
+\newcommand{\R}{\field{R}}
+%\newcommand{\M}{\mathcal{M}}
+\providecommand{\abs}[1]{ \left| #1  \right|}%{\lvert#1\rvert}
+\providecommand{\norm}[1]{\left\Vert #1 \right\Vert}
+\newcommand{\mathand}{\quad\text{ and }\quad}
+
+
+\title{TD TTS\\Extraction d'une partition musicale}
+\author{}
+
+\usepackage[frenchb]{babel}
+
+\begin{document}
+
+\maketitle
+
+\vfill
+
+\tableofcontents
+
+\newpage
+
+\section{Theorie}
+
+\subsection{Rappel note, frequence et echantillonage}
+
+Un octave est l'intervalle séparant deux sons dont les fréquences fondamentales sont en rapport de un à deux. La figure \ref{fig:notes} montre les notes d'un octave et leur emplacement relatif \footnote{version simplifié}. Ce referer à \cite{notes} pour plus de details. L'espacement logarithmique entre les 12 notes est egal. I.e, en notant $\gamma=2^{\frac{1}{12}}$, on a $f(do\#)=\gamma f(do)$, $f(re)=\gamma f(do\#)$ et $f(fa)=\gamma f(mi)$.
+%
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[height=8cm]{img/notes.png}
+  \end{center}
+  \caption{L'echelle des notes}
+  \label{fig:notes}
+\end{figure}
+%
+L'octave de base est defini par la frequence du la à 440Hz.
+
+Les fichiers sonores numériques sont des versions quantifiées et echantillonnées du signal sonore original. La quantification (discretisation) est l'operation qui transforme un signal continu en signal discret (Figure \ref{fig:quant}). En informatique, les valeurs discretes utilisées sont bornés et en nombre fini. Le signal ne peut ainsi prendre qu'un nombre fini de valeur. Voir \cite{quant}.
+%
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[height=6cm]{img/quantification.png}
+  \end{center}
+  \caption{Exemple de quantification}
+  \label{fig:quant}
+\end{figure}
+%
+L'echantillonage consiste à ne garder la valeur d'un signal (continue) qu'a des temps discret. Ces deux operations bien distinctes sont necessaire pour numériser le signal.
+
+\subsection{Notation ABC}
+
+Ne sont presenté ici qu'un petite partie du langage ABC. Pour la reference complete voir \cite{abc} et pour des liens relatifs à ABC, voir \cite{abc2}.
+
+La representation des notes est donnée dans le tableau \ref{tab:notes}.
+%
+\begin{table}[htbp]
+  \centering
+  \begin{tabular}{c|cccccccc}
+    octave&do&re&mi&fa&sol&la&si&do\\
+    \hline
+    220Hz&C,&D,&E,&F,&G,&A,&B,\\
+    440Hz&C&D&E&F&G&A&B\\
+    880Hz&c&d&e&f&g&a&b\\
+    1760Hz&c'&d'&e'&f'&g'&a'&b'
+  \end{tabular}
+  \caption{Notation des notes}
+  \label{tab:notes}
+\end{table}
+%
+En accolant un \# à un do, re, fa, sol, la on obtient la version diese de la note.
+%
+La durée des note est défini par rapport à une duré de base. Quand un chiffre (entier) est accolé à une note (A2 c\#4), la durée de la note est multiplié par celui-ci. Pour des durées plus courtes, on utilise A/2 c\#/4, qui divise respectivement la durée par 2 et 4.
+%
+En encadrant plusieurs notes de corchets, on genere un accord, par exemple [cde] represente les trois notes 'c', 'd' et 'e' jouées ensembles.
+
+\subsection{Transformée de fourier}
+
+\subsubsection{Introduction}
+theo de base + probleme de echantillonage
+
+\subsubsection{Fenetrage}
+utilité du fenetrage
+
+\subsection{Detection de pic}
+
+%pourrai utiliser derivé?
+
+
+
+moyenne glissante
+
+comparaison avec seuil à la moyenne glissante
+
+
+
+\subsection{Reconstruction de partition}
+
+\marginpar{decrire ici en detail? ou laisser dans la partie TD?}
+
+Dans ce TD, on propose de reconstituer la partition d'une musique diapason en suivant la méthode suivante:
+\begin{itemize}
+  \item transformée de fourier glissante fenetrée
+  \item filtrage et extraction des pics
+  \item quantification et regroupement
+  \item evaluation heuristique du tempo
+  \item affichage des resultats au format ABC
+\end{itemize}
+
+\section{Fonctions Matlab}
+
+sum, length
+zeros
+
+tracer les resultats:
+plot, semilogy
+utilisation: plot(Y), plot(X,Y), plot([Y1 Y2]), plot(X,[Y1 Y2])
+
+\{ \} => cells
+
+cree function et function intern
+
+fft\dots
+
+
+
+\section{TD}
+
+\marginpar{très guidé ou pas?? avec les resultats attendus?}
+
+\subsection{Préparations}
+
+Télécharger les fichiers suivants à l'adresse \dots
+\begin{itemize}
+  \item generateNote.m - genere la sinusoide pour une note
+  \item generateSong.m - genere le signal correspondant à une partition
+  \item ExtractPartition.m - genere la partition ABC à partir d'une liste de durée/frequence
+  \item AddNoise.m - superpose un bruit blanc au signal
+\end{itemize}
+
+Générer une courte musique en utilisant la fonction GenerateSong fournie
+(ex: \texttt{song = GenerateSong('A B C\# c/2 d/2 e/2 F,2 G2',0.75)} )
+Garder la partition ABC utilisée quelque part pour pouvoir la comparer avec la partition extraite à la fin.
+Sauvegarder le resultat dans un fichier wav ( \texttt{wavwrite(song',44100,16,'short.wav');} ).
+Le fichier wave a alors les caractéristiques suivantes: echantillonage à 44.1kHz et quantification sur 16bits.
+Nous garderons cette frequence d'echantillonage dans la suite. Les erreurs introduites par la quantification sont minime et pourrons être ignorée.
+
+\subsection{Extraction de la fréquence principale}
+
+Quel taille de fenetre semble la mieux adaptée? avantages et inconvenients d'un fenetre plus grande ou plus petite?
+
+\emph{Pour la suite, on utilisera des fenetres de 2048 points}.
+
+Ecrire une fonction qui renvoit le spectre d'une fenetre en supprimant la partie symetrique et la partie constante. Comment passer de l'abscisse d'un point du spectre à ca frequence en Hz?
+
+Ecrire une fonction qui renvoit la frequence principale d'une fenetre. la frequence principale sera defini comme la frequence du premier pic du spectre.
+
+Verifier que les resultats sont comformes à ce que l'on attendait en l'applicant à une fenetre de \texttt{GenerateSong} avec une seule note.
+
+\subsection{Extraction des notes}
+
+Quel espacement/recouvrement utiliser pour les fenetres?
+
+\emph{Nous espacerons nos fenetres de 10ms soit 441 echantillons}.
+
+Ecrire une fonction qui calcule la frequence principale pour toute les fenetres d'une musique et les stockent dans un tableau (il est peut etre plus utile de travailler sur $\log_{10}(f)$, vous pouvez donc renvoyer un tableau contenant les log des fréquences principales). Tracer le resultat, avec une echelle logarithmique pour les frequences (utilisation de semilogy possible). Commentaire?
+
+Ecrire une fonction qui à partir du resultat de la precedante, genere des couples (frequence,durée). La encore, on peut utiliser le logarithme de la frequence. L'objectif c'est que chaque couple represente un palier, i.e. une note.
+
+Utiliser la fonction \texttt{ExtractPartition} fournie pour recupere la partition ABC. Cette function à besoin du tempo, pour l'instant utiliser la valeur exacte que vous avez fournis à \texttt{generateSong} (dans l'exemple, c'était 0.75). Comparer avec la partition original. S'il y a des différences, comprendre d'où elles viennent et si possible les corriger.
+
+\subsection{Analyse du tempo et affichage ABC}
+
+Pour cette question, nous ferons l'hypothese que la durée des notes est de la forme $2^kT$ avec $T$ la durée de base et $k$ un entier (potentiellement negatif).
+Les durées extraite à la question precedante ne sont pas exacte.
+Ecrire une fonction qui renvoit une estimation de $T$. $T$ n'est pas unique donc choisisser par exemple celui qui est dans l'interval [0.5;1].
+
+Utiliser la fonction \texttt{ExtractPartition} fournie pour recupere la partition ABC en utilisant le tempo calculé. Comparer avec la partition original. S'il y a des différences, comprendre d'où elles viennent et si possible les corriger.
+
+\subsection{Questions bonus}
+
+Ajouter du bruit gaussien sur le fichier initial, quel est la resistance au bruit de la methode utilisée? essayer de l'améliorer.
+
+Modifier la chaine precedente pour qu'elle puisse extraire des partitions avec des accords.
+
+% biblio
+\begin{thebibliography}{9}
+  \bibitem{notes} Echelle diatonique,\\ {\verb=http://fr.wikipedia.org/wiki/échelle\_diatonique=}
+  \bibitem{quant} Quantification,\\ {\verb=http://fr.wikipedia.org/wiki/Quantification_(signal)=}
+  \bibitem{abc} Guide du système de notation ABC,\\ {\verb=http://www.tradfrance.com/abcf.txt=}
+  \bibitem{abc2} la notation musicale ABC,\\ {\verb=http://www.tradfrance.com/a10.htm=}
+    
+\end{thebibliography}
+\end{document}

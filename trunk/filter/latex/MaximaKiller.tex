@@ -1,0 +1,63 @@
+\documentclass[11pt,a4paper]{article}
+
+%\include{packages}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{graphicx}
+%\usepackage{times}
+\usepackage[latin1]{inputenc} % charactère accentué
+%\usepackage[colorlinks=false,linkcolor=blue]{hyperref}
+\usepackage[pdftex,colorlinks=true,linkcolor=blue]{hyperref}
+\usepackage{amsfonts}% to get the \mathbb alphabet
+\usepackage{amsthm}
+
+
+\usepackage[frenchb]{babel}
+
+\begin{document}
+
+
+\section{Preparation}
+\begin{enumerate}
+  \item Definition image (u,x)\ldots
+%  \item {Monotone}: An operator $T$ is standard monotone if $u \geq v \Rightarrow T(u)) \geq T(v); Tu(\infty)=Tu(\infty)$.
+% \item {Contrast Invariance}: For image analysis to be robust, the operates must be contrast invariant.\\
+% $g$: A contrast change which is a continuous increasing function.\\
+% Contrast Invariance: An operator $T$ is contrast invariant if $T(g(u))=g(Tu)$.
+  \item {Level Set}: \\
+  The (upper) level set of an image $u$ at level $\lambda$ is: 
+\begin{equation}
+  \mathcal{X}_\lambda= \{x|u(x)\geq\lambda \}
+\end{equation}
+  Property: For a contrast change $g:\mathbb{R} \rightarrow \mathbb{R}$ which is a continuous increasing surjection, $\mathcal{X}_{g(\lambda)}g(u)=\mathcal{X}_\lambda$
+  \item {Superposition principle}: 
+  \begin{equation}
+    u(x)=\sup \{\lambda | x \in \mathcal{X}_\lambda u \}
+  \end{equation}  We can use it to reconstruct the image from its level sets. 
+  % $Tu(x)=\sup \{\lambda | x \in \mathcal{T}(\mathcal{X}_\lambda u )\}$ \\
+
+  \item {} a monotone set operator  $\mathcal{T}$ is such as $ \mathcal{T}X \in X$
+
+  \item {Stack filters}:\\
+  A function operator $T: u \mapsto Tu$ is obtained from a monotone set operator $\mathcal{T}$ as a stack filter if:  
+\begin{equation}
+  Tu(x)=\sup \{\lambda | x \in \mathcal{T}(\mathcal{X}_\lambda u )\}
+\end{equation}
+
+  Stack filter algorithm:
+  \begin{equation}
+  u \rightarrow \mathcal{X}_\lambda u \rightarrow \mathcal{T}(\mathcal{X}_\lambda u ) \rightarrow Tu(x)=\sup\{\lambda | x \in \mathcal{T}(\mathcal{X}_\lambda u )\}
+\end{equation}
+  Problem: $\mathcal{X}_\lambda(Tu)=\mathcal{T}(\mathcal{X}_\lambda u)?$ Answer: It depends on the properties of  $\mathcal{T}$. When it is true, we say that $\mathcal{T}$ and $T$ satisfy the ``Commutation with threshold'' property (Not detailed here).
+\end{enumerate}
+
+\section{Application: Extrema killer}
+  One of applications is the operator Extrema killer, which can remove extreme values from an image. Impulse noise is one of the sources of those extremes values. It has been shown to be very effective in removing this kind of noise.
+  Small component killer: Let $a>0$ a scale parameter and for every $X \in \mathcal{L}$ by $X_i$ its connected components, so that $X=\bigcup_i X_i$. Small component killer removes from $X$ all connected components whose measure is strictly smaller that a:
+    \begin{equation}
+  \mathcal{T}_a X = \displaystyle {\bigcup_{\text{meas}(X_i) \geq a} X_i}
+\end{equation}
+
+
+
+\end{document}
