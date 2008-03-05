@@ -108,10 +108,37 @@ trouver lena plus petit
 
 \section{TD}
 
+PSNR + SSIM
+
+Ajouter une partie theorie sur les mesure d'erreur de reconstitution de l'image
+
+Fonctions fournies:
+\begin{itemize}
+  \item BlockSplitting - decoupe l'image en bloc de 8x8, resultat un vecteur de cell contenant des matrices 8x8
+  \item DefaultQuantizationMatrix - renvoit la matrices de quantification standard
+  \item NumberNZcoef - prend un vecteur de cell contenant des matrices 8x8 en entree et renvoit le nombre de valeurs non zeros
+\end{itemize}
+
+Ecrire une fonction dct88 et une fonction idct88.
+Ecrire une fonction de quantification
+
+Ecrire la fonction d'encodage, ecrire la fonction de decodage
+
+Ecrire des function pour evaluer l'erreur de l'image reconstitue.
+
+etudier influence taux de compression et matrice de quantification
+
+bonus ecrire une fonction qui stream l'image compresse => appliquer compression sans perte
+
+
 \subsection{Compression sans perte}
 Ecrire une fonction renvoyant la probabilite statique d'apparation d'un symbole dans un message. On prendra comme alphabet les nombres de 0 à 255, ce qui correspond à un octet.
 
 Tracer le resultat pour l'image de lena et le texte
+
+calculer l'entropie du message ordre 0, ordre 1
+
+message: texte, image, xml/html\dots
 
 donner la construction de l'arbre de huffman
 

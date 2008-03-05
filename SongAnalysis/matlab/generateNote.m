@@ -28,8 +28,8 @@ function [wave, phasefin] = generateNote(note,tempo,phaseini)
     
     N = size(res,2);
     
-    % amplitude 1
-    wave = sin(2*pi*frequence*(0:1/44100:duree)+phaseini)/N;
+    % amplitude 0.75 pour eviter l'ecretement lors de la sauvegarde avec du bruit
+    wave = 0.75*sin(2*pi*frequence*(0:1/44100:duree)+phaseini)/N;
     
     %phasefin = 2*pi*frequence*duree+phaseini; % ne veux plus rien dire...
     
@@ -37,11 +37,11 @@ function [wave, phasefin] = generateNote(note,tempo,phaseini)
     for i=2:N
         ton = strmatch(res{i}{1}, notation, 'exact'); % conversion du ton en indice
         frequence = fC4*2^((ton-13)/12); % en hertz
-        wave=wave+sin(2*pi*frequence*(0:1/44100:duree)+phaseini)/N;
+        wave=wave+0.75*sin(2*pi*frequence*(0:1/44100:duree)+phaseini)/N;
     end
     
     % pour faire le raccord:
-    phasefin = asin(wave(end));
+    phasefin = asin(wave(end)/0.75);
     if(wave(end)<wave(end-1))
         phasefin = pi-phasefin;
     end
