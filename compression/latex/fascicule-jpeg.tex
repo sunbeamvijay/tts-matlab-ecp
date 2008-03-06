@@ -1,0 +1,212 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage[dvips]{graphicx}
+%\usepackage{times}
+\usepackage[latin1]{inputenc} % charactère accentué
+%\usepackage[colorlinks=false,linkcolor=blue]{hyperref}
+%\usepackage[pdftex,colorlinks=true,linkcolor=blue]{hyperref}
+
+% Algorithm
+\usepackage[ruled]{algorithm2e}
+
+% Useful Mathematical command
+\usepackage{amsfonts}% to get the \mathbb alphabet
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\C}{\field{C}}
+\newcommand{\N}{\field{N}}
+\newcommand{\K}{\field{K}}
+\newcommand{\R}{\field{R}}
+%\newcommand{\M}{\mathcal{M}}
+\providecommand{\abs}[1]{ \left| #1  \right|}%{\lvert#1\rvert}
+\providecommand{\norm}[1]{\left\Vert #1 \right\Vert}
+\newcommand{\mathand}{\quad\text{ and }\quad}
+
+
+\title{TD TTS\\Compression d'image}
+\author{}
+
+\usepackage[frenchb]{babel}
+
+
+\begin{document}
+
+\maketitle
+
+\vfill
+\tableofcontents
+\vfill
+
+\newpage
+
+
+\section{Theorie}
+\subsection{Méthodes}
+
+% intro from http://en.wikipedia.org/wiki/Image_compression
+
+Il exite de nombreuses methodes de compression d'image, avec ou sans perte (de
+qualité). Quelques methodes avec degradation de la qualité vont être presentées. Il faut noter qu'une methode de compression sans perte est souvent effectué sur le resultat de la compression avec perte. C'est le cas par exemple du jpeg, gif\dots
+
+%\paragraph{Reduction de l'espace des couleurs}
+\subsubsection{Reduction de l'espace des couleurs}
+
+Une des idées les plus simple est la reduction l'espace des couleurs: une couleur est codée sur moins de bits. Chaque pixel d'un image etant une couleur, on reduit le stockage de l'image propotionnelement à son nombre de pixel. Pour coder la couleur, on peut reduire le nombre de bit de chaques caneaux. Par exemple, une couleur codée R8G8B8 (3 caneaux Rouge, Vert, Bleu de 8 bits chacun) soit 24bits peut etre codée en R5G6B5 en reduisant la precision de chaqu'un des caneaux et economisant ainsi 33\% de l'espace. Une autre methode consiste à utiliser une une palette, c'est à dire un tableau des couleurs utiliser dans l'image. On prend par exemple une palette de 256 couleurs, ensuite, pour chaque pixel, on indique juste l'index (8bits) de la couleur la plus proche dans la palette. Toute la difficultée etant de choisir la palette à partir d'une image. Les images GIF ainsi que certains BMP utilise cette méthode.
+
+On trouve egalement ce type de compression dans les cartes graphiques pour la compression des textures. Par exemple le format DXT1 decoupe l'image en blocs de 4x4 et pour chaque bloc stoque deux couleur et 16 indices de 2 bits. Les indices 0 et 3 pointent respectivement vers la première et la dexieme couleur stockée, les indices 1 et 2 vers des interpolations lineaire de ces couleurs. Cela permet d'avoir un taux de compression assez important (4bits par pixel) tout en ayant une decompression tres rapide et un acces direct (random accces) aux pixels de l'image.
+
+\subsubsection{Sous echantillonage de la chrominance}
+
+Nos yeux sont plus sensible à la luminosité qu'a la chrominance (la teinte). En se placant dans un espace de couleur qui sépare la luminance de chrominance, on peut sous echantilloner la chrominance sans trop de perte de qualité. L'espace de couleur RGB ne convient pas, mais on peut facilement le convertir en YCbCr par exemple qui code la luminance dans la canal Y et la chrominance dans les caneaux Cb et Cr. Par exemple, prenons une image de 512x512. On ecode la luminance sans modification. Pour la chrominance, on reduit l'image à 256x256 avant de l'encoder. Si on suppose un codage YCbCr avec 8bits par canneaux, cela permet une compression par un facteur 2.
+Generalement, chaque canal est lui-meme compressé pour obtenir des taux plus important.
+
+
+\subsubsection{Compression Fractale}
+
+Cette forme de compression, peu utilisée, actuellement repose sur l'idée des fractales, i.e. un motif se répétant à l'infini, en se rétrécissant.
+Pour compresser, deux segmentations différentes de l'image sont réalisé (une source et une destination). Ensuite, des relations entre les elements de la partition source et ceux de la partition de destination sont trouvé. Ces relations peuvent être des transformation géometrique, des transformations de couleurs\dots C'est les partitions et les relations qui code l'image.
+La reconstruction s'effectue en iterant les relations sur l'images pour arriver à un point fixe.
+Cette methodes permet des taux de compression très important, mais la compression est très lente.
+
+\subsubsection{Compression par transformation}
+
+Une transformation est appliqué à l'image, habituellement avec des operateurs de type fourier (DCT, wavelet), permettant de séparer les informations les plus importantes. Les données les moins importantes sont supprimées et le resultat est encodé. C'est la methode utiliser par le JPEG, JPEG2000\dots
+
+\subsection{le format JPEG}
+
+La méthode la plus courante pour l'encodage est la suivante:
+\begin{itemize}
+  \item Transformation des couleurs dans l'espace YCbCr
+  \item Sous echantillonage chromatique
+  \item Découpage en bloc de 8x8
+  \item Transformation de chaque bloc avec une transformation en cosinus discrète
+  \item Quantification
+  \item Codage entropique
+\end{itemize}
+
+La transformation en cosinus discrète (que nous etudirons plus en details dans la suite) est similaire à une transformer de fourier et envoit donc des coefficients representant les frequences presente dans le bloc. Exemple de resulat:
+%
+\[\begin{bmatrix}
+ -415 & -30 & -61 & 27 & 56 & -20 & -2 & 0 \\
+ 4 & -22 & -61 & 10 & 13 & -7 & -9 & 5 \\
+ -47 & 7 & 77 & -25 & -29 & 10 & 5 & -6 \\
+ -49 & 12 & 34 & -15 & -10 & 6 & 2 & 2 \\
+ 12 & -7 & -13 & -4 & -2 & 2 & -3 & 3 \\
+ -8 & 3 & 2 & -6 & -2 & 1 & 4 & 2 \\
+ -1 & 0 & 0 & -2 & -1 & -3 & 4 & -1 \\
+ 0 & 0 & -1 & -4 & -1 & 0 & 1 & 2
+\end{bmatrix} \]
+%
+Les frequences augmentes quand on va vers la droite et vers le bas.
+
+La quantification consiste à modifier l'echelle sur laquelle les frequences sont definies. Comme l'oeuil humain est plus sensible aux basses fréquences, celles-ci seront codées avec une meilleure precision. L'operation en elle-meme consite à diviser pour chaque fréquence le resultat obtenu par la DCT par une valeur de quantification spécifique à cette fréquence et arondir le resultat à l'entier le plus proche. On obtient ainsi des valeurs assez petites et beaucoup de zero se qui permet de coder le resultat en un nombre de bits reduits.
+
+Un exemple de valeurs de quantification courant presenté sous forme d'une matrice de quantification:
+\[\begin{bmatrix}
+ 16 & 11 & 10 & 16 & 24 & 40 & 51 & 61 \\
+ 12 & 12 & 14 & 19 & 26 & 58 & 60 & 55 \\
+ 14 & 13 & 16 & 24 & 40 & 57 & 69 & 56 \\
+ 14 & 17 & 22 & 29 & 51 & 87 & 80 & 62 \\
+ 18 & 22 & 37 & 56 & 68 & 109 & 103 & 77 \\
+ 24 & 35 & 55 & 64 & 81 & 104 & 113 & 92 \\
+ 49 & 64 & 78 & 87 & 103 & 121 & 120 & 101 \\
+ 72 & 92 & 95 & 98 & 112 & 100 & 103 & 99
+\end{bmatrix}\]
+%
+Et le résultat de l'application de la quantification sur la matrice précédante:
+\[\begin{bmatrix}
+ -26 & -3 & -6 & 2 & 2 & -1 & 0 & 0 \\
+ 0 & -2 & -4 & 1 & 1 & 0 & 0 & 0 \\
+ -3 & 1 & 5 & -1 & -1 & 0 & 0 & 0 \\
+ -4 & 1 & 2 & -1 & 0 & 0 & 0 & 0 \\
+ 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0
+\end{bmatrix}\]
+
+La compression entropique permet de coder la matrices précendent en utilisant le moins de bit possible. La premiere operation consiste à rearanger les coefficients en une seul ligne en utilisant l'ordre zigzag (voir Figure \ref{fig:zigzag}). Cet ordre permet de regrouper le plus de zero possible à la suite.
+%
+\begin{figure}[htbp]
+  \begin{center}
+%    \includegraphics{zigzag.png}
+  \end{center}
+  \caption{ordre Zigzag}
+  \label{fig:zigzag}
+\end{figure}
+%
+Ensuite les zeros sont codés RLE (run length encoding). C'est à dire que plutot que d'ecrire des zeros, on ecrit juste le nombre de zeros present. Puis le resultat est compresser avec l'algorithme de huffman.
+
+\subsection{DCT}
+
+\subsubsection{introduction}
+
+\subsubsection{DCT et inverse DCT}
+
+\subsubsection{DCT 2D}
+
+\subsection{Evaluation de l'erreur}
+
+
+PSNR + SSIM
+
+Ajouter une partie theorie sur les mesure d'erreur de reconstitution de l'image
+
+utilité
+
+
+% DXT1-5, other quantised
+
+\section{Fonctions Matlab}
+
+sum
+zeros
+
+==, >, < vectorialise
+
+plot, bar
+
+sort
+
+isstruct
+
+\{ \} => cells
+
+reshape
+
+char
+
+cree function et function intern
+
+
+\section{TD}
+
+Fonctions fournies:
+\begin{itemize}
+  \item BlockSplitting - decoupe l'image en bloc de 8x8, resultat un vecteur de cell contenant des matrices 8x8
+  \item DefaultQuantizationMatrix - renvoit la matrices de quantification standard
+  \item NumberNZcoef - prend un vecteur de cell contenant des matrices 8x8 en entree et renvoit le nombre de valeurs non zeros
+\end{itemize}
+
+%DXT1
+
+Ecrire une fonction dct88 et une fonction idct88.
+Ecrire une fonction de quantification
+
+Ecrire la fonction d'encodage, ecrire la fonction de decodage
+
+Ecrire des function pour evaluer l'erreur de l'image reconstitue.
+
+etudier influence taux de compression et matrice de quantification
+
+bonus ecrire une fonction qui stream l'image compresse => appliquer compression sans perte
+
+
+\begin{thebibliography}{9}
+  \bibitem{compimg} Compression image, \\ \verb=http://en.wikipedia.org/wiki/Image_compression=
+  \bibitem{jpg} JPEG, \\ \verb=http://en.wikipedia.org/wiki/JPEG=
+
+\end{thebibliography}
+
+\end{document}
+

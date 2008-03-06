@@ -25,9 +25,10 @@
 \newcommand{\field}[1]{\mathbb{#1}}
 \newcommand{\C}{\field{C}}
 \newcommand{\N}{\field{N}}
+\newcommand{\Z}{\field{Z}}
 \newcommand{\K}{\field{K}}
 \newcommand{\R}{\field{R}}
-%\newcommand{\M}{\mathcal{M}}
+\newcommand{\F}{\mathcal{F}}
 \providecommand{\abs}[1]{ \left| #1  \right|}%{\lvert#1\rvert}
 \providecommand{\norm}[1]{\left\Vert #1 \right\Vert}
 \newcommand{\mathand}{\quad\text{ and }\quad}
@@ -104,21 +105,115 @@ En encadrant plusieurs notes de corchets, on genere un accord, par exemple [cde]
 
 \subsection{Transformée de fourier}
 
-\subsubsection{Introduction}
-theo de base + probleme de echantillonage
+\subsubsection{Transformée de fourier continue}
+
+La transformée de fourier (continue) transforme une fonction integrable en une autre qui est sa représentation dans le domaine fréquenciel (la fonction initial etant dans le domaine temporel).
+%
+\[ \F: x \mapsto X \]
+%
+Différentes conventions sont utilisées pour definir cette transformation. Par exemple, on peut utiliser soit la frequence ordinaire $f$ (en Hz) soit la frequence angulaire $\omega=2\pi f$. Pour plus d'information voir \cite{fourier}. Dans la suite, nous utiliserons la definition utiliser classiquement en traitement du signal:
+%
+\[ \forall f\in \R, \; X(f) = \int  _{-\infty}^{\infty} x(t)\ e^{-i 2\pi f t}\,dt\]
+%
+où $t$ est le temps en seconde. La transformation inverse étant:
+%
+\[ \forall f\in \R, \; x(t) = \int  _{-\infty}^{\infty} X(f)\ e^{ i 2 \pi f t}\,df\]
+% Hölder continuous
+$X$ est souvent noté $\hat{x}$ ou $\F(x)$. Pour que la transformation soit reversible, il faut que la fonction soit Hölder continuous:
+\[\abs{f(x)-f(y)} \leq C \abs{x-y}^\alpha\]
+
+Quelques propriétés:
+\paragraph{Linearité}
+\[a\cdot f(t) + b\cdot g(t) \quad \stackrel{\mathcal{F}}{\Longleftrightarrow}\quad a\cdot F(\omega) + b\cdot G(\omega)\]
+
+\paragraph{Multiplication}
+\[ f(t)\cdot g(t) \quad \stackrel{\mathcal{F}}{\Longleftrightarrow}\quad F(f) * G(f) \]
+
+\paragraph{Convolution}
+\[ f(t) * g(t) \quad \stackrel{\mathcal{F}}{\Longleftrightarrow}\quad F(f) \cdot G(f) \]
+
+\paragraph{Changement d'echelle}
+\[f(at) \quad \stackrel{\mathcal{F}}{\Longleftrightarrow}\quad \frac{1}{|a|}F\biggl(\frac{\omega}{a}\biggr), \qquad a \in \mathbb{R}, a \ne 0\]
+
+\paragraph{Deplacement}
+\[ f(t-t_0) \quad \stackrel{\mathcal{F}}{\Longleftrightarrow}\quad e^{-i\omega t_0}\cdot F(\omega) \]
+
+Pour une liste plus complete, voir \cite{fourier}.
+
+Rappel: une convolution est définie par:
+\[(f  * g )(t) = \int_{a}^{b} f(\tau) g(t - \tau)\, d\tau\]
+
+\subsubsection{Transformé de fourier en temps discret (DTFT)}
+
+On a vu que l'echantillonage consite à prendre la valeur d'un signal à des instants discrets. 
+Considerons que nous prenons un echantillon tout les $T$ secondes. $f_s=\frac{1}{T}$ représente la fréquence d'echantillonage. Le signal echantilloné est la suite $x_n, n\in \Z$ définie par $x_n=Tx(nT)$. On multiplie par $T$ pour preserver l'integrale du signal. La Transformé de fourier en temps discret est alors:
+%
+\[ X(f) =  \sum_{n=-\infty}^{\infty} x_n \,e^{-i 2\pi f nT} \]
+%
+En utilisant la frequence reduite $f_r=\frac{f}{f_s}$ on a:
+\[ X(f_r) =  \sum_{n=-\infty}^{\infty} x_n \,e^{-i 2\pi f_r n} \]
+%
+Mathématiquement, on peut relier ceci à la transformé continue en considerant que le signal echantilloné est la par la multiplication du signal par un peigne de dirac.
+\[\Delta_T(t) = T\sum_{n=-\infty}^{\infty} \delta(t - nT)\]
+%
+\begin{align*}
+  \F(\Delta_T\cdot x)(f) &= \int_{-\infty}^\infty \left[T \sum_{n=-\infty}^{\infty} \delta(t - n T)\right] x(t) e^{- i 2\pi f t}\,dt\\
+  &= \sum_{n=-\infty}^{\infty} Tx(nT) e^{- i 2\pi f nT}
+\end{align*}
+
+En utilisant la propriété de multiplisation de la transformé de fourier, on peut ecrire:
+%
+\begin{align*}
+  \F(\Delta_T\cdot x)(f) &= \left( \F(\Delta_T)*\F(x) \right)(f)\\
+  &= \left( T \Delta_{f_s}*X \right)(f)\\
+  &= T \sum_{k=-\infty}^{\infty} X(f+kf_s)
+\end{align*}
+%
+Cette formule exprime le probleme de repliment du spectre lié à l'échantillonage. On voit aussi facilement que le spectre devient periodique de periode $T$.
+
+Pour plus d'information sur la DTFT, voir \cite{DTFT}. 
 
 \subsubsection{Fenetrage}
-utilité du fenetrage
 
-\subsection{Detection de pic}
+Numériquement, on ne peut pas integrer/sommer sur des plages infinies. On utilise donc une fonction de fenetrage. L'objectif etant d'étudier seulement une partie du signal. La fonction de fenetrage la plus simple etant la function rectangulaire definie par:
+%
+\[ \mathrm{rect}(t)=\sqcap(t)=\begin{cases} 0 & \text{ si } \abs{t}>\frac{1}{2}\\1& \text{ si }\abs{t}\leq\frac{1}{2}\end{cases} \]
+% 
+Sa transformé de fourier etant $\F(\sqcap)=\mathrm{sinc}$. En utilisation les propriétés de la transformée de fourier, on peut cree une fonction rectangle pour un intervale quelconque.
 
-%pourrai utiliser derivé?
+Cependant, fenetrer ainsi le signal pose quelques problemes. En effet, pour une function de fenetrage $W$, le signal etudié est $W\cdot x$ et sa transformé de fourier:
+%
+\[ \F(W\cdot x)(f) = \left( \F(W)*\F(x) \right)(f) \]
+%
+Le spectre observé est donc une convolution du spectre reel et de celui de la function de fenetrage. Ainsi les pics sont moins nets et des pics secondaires apparaise. Le choix d'une function de fenetrage est donc important et depend de l'utilisation qui sera faites du spectre.
 
+Choisir une fonction de fenetrage est un compromis entre elargissement des frequences et bruits generé. voir \cite{window} pour des exemples.
 
+\subsubsection{Transformé de fourier discrete (DFT)}
 
-moyenne glissante
+Si le signal étudié à un nombre fini de valeurs, ce qui est le cas dans la pratique, en particulier apres fenetrage, un nombre fini de coeficient de fourier suffit pour reconstruire le signal. La reconstruction d'un signal dont on aurai supprimer les valeurs en dehors d'un interval, n'est valable qu'a l'interieur de cette interval. Les problemes d'echantillonage et de fenetrage reste valable.
 
-comparaison avec seuil à la moyenne glissante
+Si on ne s'interesse qu'aux $N$ valeurs $x_0,\dots,x_{N-1}$, La DTFT devient:
+%
+\[ X(f) =  \sum_{n=0}^{N-1} x_n \,e^{-i 2\pi f nT} \]
+%
+En prenant pour valeur de $f$ $N$ frequences uniformement repartie entre $0$ et $f_s$ (inutile d'aller plus long car le spectre est periodique), on obtient ($f_k=\frac{kf_s}{N}$):
+%
+\[ \forall k\in \left\{ 0,\dots,N-1 \right\}, \; X_k = X(f_k) =  \sum_{n=0}^{N-1} x_n \,e^{-i 2\pi \frac{kn}{N}} \]
+%
+Cette formule est la DFT. Son inverse est:
+%
+\[ \forall n\in \left\{ 0,\dots,N-1 \right\}, \; x_n = \frac{1}{N} \sum_{k=0}^{N-1} X_k \,e^{i 2\pi \frac{kn}{N}} \]
+%
+Pour plus d'information sur la DFT, voir \cite{DFT}. La FFT (fast fourier transform) est une implementation (informatique) rapide de la DFT.
+
+%\subsection{Detection de pic}
+%
+%Une methode de detection de pic est de comparer 
+%
+%moyenne glissante
+%
+%comparaison avec seuil à la moyenne glissante
 
 
 
@@ -137,14 +232,14 @@ Dans ce TD, on propose de reconstituer la partition d'une musique diapason en su
 
 \section{Fonctions Matlab}
 
-sum, length
-zeros
+%sum, length
+%zeros
 
 tracer les resultats:
 plot, semilogy
 utilisation: plot(Y), plot(X,Y), plot([Y1 Y2]), plot(X,[Y1 Y2])
 
-\{ \} => cells
+%\{ \} => cells
 
 cree function et function intern
 
@@ -181,7 +276,9 @@ Quel taille de fenetre semble la mieux adaptée? avantages et inconvenients d'un 
 
 Ecrire une fonction qui renvoit le spectre d'une fenetre en supprimant la partie symetrique et la partie constante. Comment passer de l'abscisse d'un point du spectre à ca frequence en Hz?
 
-Ecrire une fonction qui renvoit la frequence principale d'une fenetre. la frequence principale sera defini comme la frequence du premier pic du spectre.
+Essayer différentes fonctions de fenetrage (voir \cite{window} pour des exemples), lesquels donnent les meilleurs resultats? Utiliser semilogy pour voir le spectre en dB.
+
+Ecrire une fonction qui renvoit la frequence principale d'une fenetre. la frequence principale sera defini comme la frequence du premier pic du spectre. Pour detecter les pics vous pouvez utiliser la methode suivante: calculer une moyenne glissante (mobile) du spectre puis pour chaque point du spectre, diviser celui-ci par sa moyenne glissante, si le resultat est plus grand qu'un certains seuil on a detecter un pic.
 
 Verifier que les resultats sont comformes à ce que l'on attendait en l'applicant à une fenetre de \texttt{GenerateSong} avec une seule note.
 
@@ -213,10 +310,14 @@ Modifier la chaine precedente pour qu'elle puisse extraire des partitions avec d
 
 % biblio
 \begin{thebibliography}{9}
-  \bibitem{notes} Echelle diatonique,\\ {\verb=http://fr.wikipedia.org/wiki/échelle\_diatonique=}
+  \bibitem{notes} Echelle diatonique,\\ {\verb=http://fr.wikipedia.org/wiki/échelle_diatonique=}
   \bibitem{quant} Quantification,\\ {\verb=http://fr.wikipedia.org/wiki/Quantification_(signal)=}
   \bibitem{abc} Guide du système de notation ABC,\\ {\verb=http://www.tradfrance.com/abcf.txt=}
   \bibitem{abc2} la notation musicale ABC,\\ {\verb=http://www.tradfrance.com/a10.htm=}
-    
+  \bibitem{fourier} Transformée de fourier continue,\\ {\verb=http://en.wikipedia.org/wiki/Continuous_Fourier_transform=}
+  \bibitem{DTFT} Transformée de fourier en temps discret,\\ {\verb=http://en.wikipedia.org/wiki/Discrete-time_Fourier_transform=}
+  \bibitem{DFT} Transformée de fourier discrète,\\ {\verb=http://en.wikipedia.org/wiki/Discrete_Fourier_transform=}
+  \bibitem{window} Fonctions de fenetrage,\\ {\verb=http://en.wikipedia.org/wiki/Window_function#Window_examples=}
+
 \end{thebibliography}
 \end{document}
