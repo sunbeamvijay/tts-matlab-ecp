@@ -34,42 +34,24 @@
 
 \tableofcontents
 
-\section{Compression image avec perte}
-\subsection{methods}
-Reduction l'espace des couleurs par utilisation d'un palette/reduction du nombre de bit par pixel
-=> some GIF/BMP, interessant citer DXT1
+\section{Theorie}
+\subsection{Entropie (en théorie de l'information)}
 
-Sous echantillonage de la chrominance
+En théorie de l'information, l'entropie de Shannon est la mesure de l'incertitude associée avec une variable aléatoire. Elle quantifie l'information contenu dans un message habituellement en bits ou en bits par symboles. Elle correspond à la longueur minimale du message necessaire pour communiquer l'information. C'est donc la limite absolue pour la meilleur méthode de compression sans perte.
 
-Transform coding habituellement avec des operateurs de type fourier (DCT, wavelet)
+Pour une variable aléatoire discrète $X$, qui peut prendre les valeurs $\left\{ x_1,\dots,x_n \right\}$, cette entropie est égale à:
+\[ H(X)  =  \operatorname{E}( I(X) ) = - \sum_{i=1}^np(x_i)\log_2 p(x_i) \]
+%
+où $I(X)$ est la quantité d'information de $X$ et $p(x_i)=Pr(X=x_i)$ est la probabilité d'occurence de $x_i$.
 
-fractal
+Avant de voir les propriétés de $H$, il est important de remarqué que ca definition dépend du modèle utilisé pour calculer la $p(x_i)$. En effet, un modele plus complexe (utilisant le contexte par exemple) permettra souvent de faire des predictions plus précise, et l'entropie $H$ diminura. C'est pourquoi, dire que $H$ ``correspond à la longueur minimale du message necessaire pour communiquer l'information'' est assez relatif et depend du modèle probabiliste.
 
-\subsection{le format JPEG}
-Color space transformation
+%http://en.wikipedia.org/wiki/Information_entropy
 
-Downsampling
+L'entropie de Shannon est caractérisée par les propriétés suivantes.
 
-Block splitting
 
-Discrete cosine transform
 
-Quantization
-
-Entropy coding (voir section suivante)
-
-\subsection{DCT}
-
-\subsubsection{introduction}
-
-\subsubsection{DCT et inverse DCT}
-
-\subsubsection{DCT 2D}
-
-% DXT1-5, other quantised
-
-\section{Compression sans perte}
-\subsection{theory}
 \subsection{codage entropique}
 => huffman <=
 arithmetic
@@ -107,28 +89,6 @@ cree function et function intern
 trouver lena plus petit
 
 \section{TD}
-
-PSNR + SSIM
-
-Ajouter une partie theorie sur les mesure d'erreur de reconstitution de l'image
-
-Fonctions fournies:
-\begin{itemize}
-  \item BlockSplitting - decoupe l'image en bloc de 8x8, resultat un vecteur de cell contenant des matrices 8x8
-  \item DefaultQuantizationMatrix - renvoit la matrices de quantification standard
-  \item NumberNZcoef - prend un vecteur de cell contenant des matrices 8x8 en entree et renvoit le nombre de valeurs non zeros
-\end{itemize}
-
-Ecrire une fonction dct88 et une fonction idct88.
-Ecrire une fonction de quantification
-
-Ecrire la fonction d'encodage, ecrire la fonction de decodage
-
-Ecrire des function pour evaluer l'erreur de l'image reconstitue.
-
-etudier influence taux de compression et matrice de quantification
-
-bonus ecrire une fonction qui stream l'image compresse => appliquer compression sans perte
 
 
 \subsection{Compression sans perte}
