@@ -5,7 +5,7 @@
 %\usepackage{times}
 \usepackage[latin1]{inputenc} % charactère accentué
 %\usepackage[colorlinks=false,linkcolor=blue]{hyperref}
-%\usepackage[pdftex,colorlinks=true,linkcolor=blue]{hyperref}
+\usepackage[pdftex,colorlinks=true,linkcolor=blue]{hyperref}
 
 % Algorithm
 \usepackage[ruled]{algorithm2e}
@@ -129,7 +129,7 @@ La compression entropique permet de coder la matrices précendent en utilisant le
 %
 \begin{figure}[htbp]
   \begin{center}
-%    \includegraphics{zigzag.png}
+    \includegraphics[width=5cm]{zigzag.png}
   \end{center}
   \caption{ordre Zigzag}
   \label{fig:zigzag}
@@ -139,27 +139,92 @@ Ensuite les zeros sont codés RLE (run length encoding). C'est à dire que plutot 
 
 \subsection{DCT}
 
-\subsubsection{introduction}
+DCT est l'abréviation de discrete cosine transform soit, en français, transformé en cosinus discrète.
+Elle est similaire à la DFT mais ne travail que sur des nombres réels (la DFT marche avec des complexes). DCT est equivalent à une DFT sur deux fois plus de points operant sur des données réel symetrique. Il existe huit variantes standard de la DCT. Nous ne presenterons que la version la plus courante (type II) et son inverse (type III).
+
+Les differentes variantes sont liées aux extensions periodiques implicites des points utilisés en entrés. $N$ points definise la fonction entre 0 et $N-1$. En dehors de cet interval, la fonction est prolongé par symetrie et periodicité. La symetrie peut etre pair ou impaire (anti-symetrique). La position de la symetrie peut etre qu niveau d'un point ou entre deux points. La figure \ref{fig:sym} presente ces différences.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[width=10cm]{sym.png}
+  \end{center}
+  \caption{Illustration des différentes DCT et de leur extension implicite}
+  \label{fig:sym}
+\end{figure}
 
 \subsubsection{DCT et inverse DCT}
 
+La DCT-II souvent appelé la DCT est définie par (pour $N$ points $x_n$):
+\[ X_k = w(k) \sum_{n=0}^{N-1} x_n \cos \left[\frac{\pi}{N} \left(n+\frac{1}{2}\right) k \right] \quad \quad k = 0, \dots, N-1 \]
+%
+Les $x_n$ et les $X_k$ étant des nombres réels. $w(k)$ est parfois défini constant et égale à $1$, ce qui permet une equivalence directe avec la DFT
+%
+\footnote{Cette tranformation est exactement équivalente (à un facteur 2 près) à la DFT des $4N$ points $y_n$ defini par $y_{2n}=0$, $y_{2n+1}=x_n$ pour $0\leq n<N$ et $y_{4N-n}=y_n$ pour $0<n< 2N$.}
+%
+. Mais nous prendrons une autre convention: 
+\[ w(k)=\begin{cases} \sqrt{\frac{1}{N}} & \text{ pour } k=0\\\sqrt{\frac{2}{N}} & \text{ sinon} \end{cases} \]
+
+La DCT-III est l'inverse de la DCT-II, on l'appele ainsi parfois DCT inverse ou IDCT. Elle est définie par:
+\[ x_n = \sum_{k=0}^{N-1} w(k) X_k \cos \left[\frac{\pi}{N} \left(n+\frac{1}{2}\right) k\right] \quad \quad n = 0, \dots, N-1 \]
+%
+$w(k)$ étant défini comme précédament. On remarque que c'est la transposé de la DCT-II.
+
 \subsubsection{DCT 2D}
+
+La DCT à deux dimensions est simplement la composition de la DCT selon une dimension suivit par la DCT dans l'autre dimension. Ce qui donne par exemple pour DCT-II:
+
+\[ X_{k_x,k_y} = w_x(k_x) w_y(k_y) \sum_{n_x=0}^{N_x-1} \sum_{n_y=0}^{N_y-1} x_{n_x,n_y} \cos \left[\frac{\pi}{N_x} \left(n_x+\frac{1}{2}\right) k_x \right] \cos \left[\frac{\pi}{N_y} \left(n_y+\frac{1}{2}\right) k_y \right] \]
+
+La figure \ref{fig:dct} illustre la signification des coefficients de la DCT dans le cas où $N_x=N_y=8$. Dans chaque case, on trouve l'IDCT d'une matrice $X$ avec tout ces coefficients nuls sauf un.
+
+\begin{figure}[htbp]
+  \begin{center}
+    \includegraphics[width=6cm]{dct.png}
+  \end{center}
+  \caption{Representation des frequences encodées par une DCT 2D avec $N_x=N_y=8$. Chaque case correspond à un coefficient de la DCT.}
+  \label{fig:dct}
+\end{figure}
+
+\subsubsection{Application au JPEG}
+
+Dans le format JPEG, la DCT-II 2D est appliqué à chaque bloc de 8x8. Les valeurs des elements de l'image sont comprises entre 0 et 255 (8bits). Pour ne pas avoir un coefficient DC trop important, on centre les valeurs autour de 0 est soustraiant 128 à tout les valeurs. %La formule utilisé dans la compression JPEG est:
+%\[
+%G_{u,v} =
+% \alpha(u)
+% \alpha(v)
+% \sum_{x=0}^7
+% \sum_{y=0}^7
+% g_{x,y} 
+% \cos \left[\frac{\pi}{8} \left(x+\frac{1}{2}\right) u \right]
+% \cos \left[\frac{\pi}{8} \left(y+\frac{1}{2}\right) v \right]
+%\]
+
+La valeur $X_{00}$ est appelé le coefient DC, c'est la moyenne du bloc. Les autres sont les coefficients AC.
+
+%Note the rather large value of the top-left corner. This is the DC coefficient. The remaining 63 coefficients are called the AC coefficients. The DCT temporarily increases the bit-depth of the image, since the DCT coefficients of an 8-bit/component image take up to 11 or 12 bits (depending on fidelity of the DCT calculation) to store. This may force the codec to temporarily use 16-bit bins to hold these coefficients doubling the formal size of the image representation at this point. The advantage of the DCT is its tendency to aggregate most of the signal in one corner of the result, as may be seen above. The quantization step to follow accentuates this effect while simultaneously reducing the size of the DCT coefficients to 8 bits or less, resulting in a signal with a large trailing region containing zeros that the entropy stage can simply throw away. 
+
 
 \subsection{Evaluation de l'erreur}
 
+Il est parfois utile de pouvoir evaluer la qualité de l'image compressée. Il est difficile de definir mathematiquement la qualité telle qu'elle est perçu par les humains, mais il exite plusieurs aproximations. Cela peut servir à faire de la compression guidée par la qualité, ou à comparer différents algorithmes de compression.
 
-PSNR + SSIM
+Une telle mesure souvent utilisée pour mesurer la qualité des image compressé est le PSNR (peak signal-to-noise ratio). Prenons deux images monochrome $I$ et $K$, la moyenne de l'écart au carré (MSE) est défini par:
+\[\mathit{MSE} = \frac{1}{mn}\sum_{i=0}^{m-1}\sum_{j=0}^{n-1} ||I(i,j) - K(i,j)||^2 \]
+Le PSNR est defini comme (exprimé en dB):
+%
+\[ \mathit{PSNR} = 10 \cdot \log_{10} \left( \frac{\mathit{MAX}_I^2}{\mathit{MSE}} \right) 
+= 20 \cdot \log_{10} \left( \frac{\mathit{MAX}_I}{\sqrt{\mathit{MSE}}} \right) \]
+%
+ou $\mathit{MAX}_I$ est la plus grande valeur que peut prendre un pixel (255 dans notre cas 8bits). Pour les images en couleurs, on defini le MSE comme la moyenne des MSE sur chaque canal. Les valeur typique de PSNR pour une compression d'image
+\footnote{On calcul le PSNR entre l'image original et l'image reconstituée après compression et décompression}
+sont entre 30 et 50 dB, le plus grand etant le meilleur.
 
-Ajouter une partie theorie sur les mesure d'erreur de reconstitution de l'image
+Une autre messure plus recente, qui essaye de mieux prendre en compte les particularitées de la vision humaine est SSIM () qui semble donner des resulats plus juste.
 
-utilité
-
-
-% DXT1-5, other quantised
 
 \section{Fonctions Matlab}
 
-sum
+%sum
 zeros
 
 ==, >, < vectorialise
@@ -168,16 +233,19 @@ plot, bar
 
 sort
 
-isstruct
+%isstruct
 
 \{ \} => cells
 
 reshape
 
-char
+%char
 
-cree function et function intern
+%cree function et function intern
 
+rand
+
+median
 
 \section{TD}
 
@@ -186,26 +254,57 @@ Fonctions fournies:
   \item BlockSplitting - decoupe l'image en bloc de 8x8, resultat un vecteur de cell contenant des matrices 8x8
   \item DefaultQuantizationMatrix - renvoit la matrices de quantification standard
   \item NumberNZcoef - prend un vecteur de cell contenant des matrices 8x8 en entree et renvoit le nombre de valeurs non zeros
+  \item EvalSSIM - Calcul l'indice SSIM entre deux images
 \end{itemize}
 
 %DXT1
 
-Ecrire une fonction dct88 et une fonction idct88.
-Ecrire une fonction de quantification
+\subsection{JPEG}
 
-Ecrire la fonction d'encodage, ecrire la fonction de decodage
+Ecrire une fonction dct88 et une fonction idct88 correspondant aux DCT utiliser par le JPEG. Verifier que idct88 est bien l'inverse de dct88 (sur une matrice aleatoire par exemple). Essayer d'appliquer idct88 à une matrice dont tout les coefficient sont nuls sauf un. Vous devrier retrouver les images de la figure \ref{fig:dct}.
 
-Ecrire des function pour evaluer l'erreur de l'image reconstitue.
+Ecrire une fonction de quantification.
 
-etudier influence taux de compression et matrice de quantification
+Ecrire la fonction d'encodage puis ecrire la fonction de decodage. Verifier que ca marche.
 
-bonus ecrire une fonction qui stream l'image compresse => appliquer compression sans perte
+Ecrire une fonction qui calcul le PSNR.
+
+Etudier influence du taux de compression et de la matrice de quantification sur la qualité de l'image
+(PSNR, SSIM, visuellement) et sur sa taille (on evalura la taille en comptant le nombre de coefficient non nul).
+
+\subsection{Autres methodes}
+
+Compresser une image couleur en convertissant les couleurs en R5G6B5. Evaluer la qualité. Remarque.
+
+Compresser une image en utilisant une palette. Cette technique est plus utile sur les images en couleurs, mais il est plus simple de commencer sur une image monochrome. Vous pouvez utiliser l'algorithme \ref{alg:MCA} (Pour des images couleurs les boites seront des cubes, pour les images monochromes des intervals. Les points seront les couleurs de l'image). Evaluer la qualité. Remarque.
+
+\begin{algorithm}[htbm]
+\SetLine
+\dontprintsemicolon
+%\KwData{this text}
+%\KwResult{how to write algorithm with \LaTeX2e }
+Soit $B$ un ensemble de boites contenants des points\;
+Initialement, $B$ contient seulement une boite avec tout les points\;
+\While{le nombre de boites dans $B$ $<$ nombre de groupes desirés}{
+  Trouver l'arrete la plus longue de toutes les boites\;
+  Couper cette boite en deux dans sa direction la plus longue de tel façon que la moitié des points soit contenu dans chaque boite\;
+  Ajuster les nouvelles boites pour qu'elles soit juste assez large pour contenir leurs points\;
+}
+\caption{median cut algorithm}
+\label{alg:MCA}
+\end{algorithm}
+
+
+
 
 
 \begin{thebibliography}{9}
   \bibitem{compimg} Compression image, \\ \verb=http://en.wikipedia.org/wiki/Image_compression=
+  \bibitem{quant} Color Quantization, \\ \verb=http://en.wikipedia.org/wiki/Color_quantization=
   \bibitem{jpg} JPEG, \\ \verb=http://en.wikipedia.org/wiki/JPEG=
-
+  \bibitem{DCT} DCT, \\ \verb=http://en.wikipedia.org/wiki/Discrete_cosine_transform=
+  \bibitem{PSNR} PSNR, \\ \verb=http://en.wikipedia.org/wiki/PSNR=
+  \bibitem{SSIM} SSIM, \\ \verb=http://www.cns.nyu.edu/~zwang/files/papers/ssim.html=
 \end{thebibliography}
 
 \end{document}
