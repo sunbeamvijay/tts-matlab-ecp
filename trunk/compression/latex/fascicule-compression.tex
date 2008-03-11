@@ -3,16 +3,7 @@
 \usepackage{amsmath}
 \usepackage[dvips]{graphicx}
 %\usepackage{times}
-
-% Mathematical definition
-\usepackage{amsthm}
-\newtheorem{property}{Property}%[section]
-\newtheorem{theorem}{Theorem}%[section]
-\newtheorem{lemma}{Proposition}%[section]
-\theoremstyle{definition}
-\newtheorem{assumption}{Assumption}%[section]
-\newtheorem{define}{Definition}%[section]
-\newtheorem{definition}{Definition}%[section]
+\usepackage[latin1]{inputenc} % charactère accentué
 
 % Algorithm
 \usepackage[ruled]{algorithm2e}
@@ -30,9 +21,20 @@
 \newcommand{\mathand}{\quad\text{ and }\quad}
 
 
+\title{TD TTS\\Compression sans perte}
+\author{}
+
+\usepackage[frenchb]{babel}
+
 \begin{document}
 
+\maketitle
+
+\vfill
 \tableofcontents
+\vfill
+
+\newpage
 
 \section{Theorie}
 \subsection{Entropie (en théorie de l'information)}
@@ -44,26 +46,118 @@ Pour une variable aléatoire discrète $X$, qui peut prendre les valeurs $\left\{ 
 %
 où $I(X)$ est la quantité d'information de $X$ et $p(x_i)=Pr(X=x_i)$ est la probabilité d'occurence de $x_i$.
 
-Avant de voir les propriétés de $H$, il est important de remarqué que ca definition dépend du modèle utilisé pour calculer la $p(x_i)$. En effet, un modele plus complexe (utilisant le contexte par exemple) permettra souvent de faire des predictions plus précise, et l'entropie $H$ diminura. C'est pourquoi, dire que $H$ ``correspond à la longueur minimale du message necessaire pour communiquer l'information'' est assez relatif et depend du modèle probabiliste.
+Avant de voir les propriétés de $H$, il est important de remarqué que ca definition dépend du modèle statistique utilisé pour calculer la $p(x_i)$. En effet, un modele plus complexe (utilisant le contexte par exemple) permettra souvent de faire des predictions plus précise, et l'entropie $H$ diminura. C'est pourquoi, dire que $H$ ``correspond à la longueur minimale du message necessaire pour communiquer l'information'' est assez relatif et depend du modèle probabiliste.
 
 %http://en.wikipedia.org/wiki/Information_entropy
 
-L'entropie de Shannon est caractérisée par les propriétés suivantes.
+L'entropie de Shannon est caractérisée (définie à une constante près) par les propriétés suivantes:
+(on notera $p_i=\Pr(X=x_i)$ et $H_n(p_1,\ldots,p_n)=H(X)$)
+
+\paragraph{Continuité}
+$H_n$ est continue (par rapport aux $p_i$).
+
+\paragraph{Symetrique}
+Changer l'ordre des probabilitée ne change pas la valeur de l'entropie
+
+\paragraph{Maximum}
+L'entropie doit être maximale quand toutes les possibilitées sont équiprobables.I.e.:
+%
+\[H_n(p_1,\ldots,p_n) \le H_n\left(\frac{1}{n}, \ldots, \frac{1}{n}\right)\]
+%
+Pour des evenements equiprobables, l'entropie augmente strictement avec le nombre de possibilitées:
+%
+\[ H_n\bigg(\underbrace{\frac{1}{n}, \ldots, \frac{1}{n}}_{n}\bigg) < H_{n+1}\bigg(\underbrace{\frac{1}{n+1}, \ldots, \frac{1}{n+1}}_{n+1}\bigg) \]
+
+\paragraph{Additivité}
+Pour tout entiers strictement positifs $b_i$ avec $sum_{i=1}^{k}b_i=n$, on a:
+%
+\[ H_n\left(\frac{1}{n}, \ldots, \frac{1}{n}\right) = H_k\left(\frac{b_1}{n}, \ldots, \frac{b_k}{n}\right) + \sum_{i=1}^k \frac{b_i}{n} \, H_{b_i}\left(\frac{1}{b_i}, \ldots, \frac{1}{b_i}\right) \]
+
+Cette derniere propriété permet de montrer que $H(1)=0$.
+
+L'entropie d'un message est la somme des entropies de chaque symbole constituant le message.
+
+\subsection{modèles statistiques}
+
+L'objectif du modèle est d'estimer la probabilité d'apparence de chaque symbole à tel position dans le message. Autrement dit, le modèle essai de prédire le contenu du message à partir des informations qu'il a desja sur celui-ci.
+
+Le modèle le plus simple, est un modèle static d'ordre 0. Dans se cas, la probabilité d'apparation d'un symbole (n'importe où dans le message) est égale au nombre d'occurences de ce symbole dans le message divisé par la longueur du message. Le premier probleme de ce modele est qu'il faut connaitre l'intégralité du message avant de pouvoir calculer les probabilités. Le deuxieme probleme, est qu'il ignore completement le contexe du symbole pour estimer sa probabilité, ce qui reduit grandement sont éfficacité.
+
+Les modèles PPM d'ordre $n$ utilise les $n$ symboles precedent le symbole à predire pour estimer ca probabilité. C'est à dire que la probabilité que le symbole $x_{n+1}$ apparaise après les symboles $x_1\dots x_n$ est égale au nombre d'occurence de $x_1\dots x_nx_{n+1}$ dans le message diviser par le nombre d'occurence de $x_1\dots x_n$. Ces modèles utilise beaucoup plus de memoire que le précédent mais sont plus précis. Exemple, imaginons que l'on compresse un fichier texte en français, la probabilité qu'un 'u' suivent un 'q' est très forte de meme qu'un espace suit souvent un point ou une virgule. Un model d'ordre 1 donnera donc de bien meilleur resultat qu'un model d'ordre 0.
 
 
+% The decoder must have the same model as the encoder.
 
 \subsection{codage entropique}
-=> huffman <=
-arithmetic
-\subsection{model}
-=> static <=
 
-/dynamic
-avec contexe PPM
+Les codeurs entropiques sont des algorithmes qui essaient d'encoder un message avec le moins de bits possible en utilisant la probibilité de chaque symbole. La longeur minimal du message compressé est l'entropie de shannon. Les codeurs entropiques actuel sont très proche de cette limite. C'est pourquoi, pour ce genre de methode, tout la complexité est d'avoir le modèle statistique le plus precis possible afin de faire baisser l'entropie.
 
-=> dictionnaire Lempel-Ziv-Welch (LZW) <=
+Un codeur entropique très connu, est l'algorithme de Huffman. Il consiste à creer un arbre binaire ayant pour feuilles les symboles à coder. Une fois l'arbre construit, on affect à chaque symbole un suite de bits. Cette suite est contruite en partant de la racine de l'arbre et en descendant jusqu'a la feuille du symbole en concatenant un 0 quand on prend le fils gauche et un 1 quand on descend par le fils droit (cf Figure \ref{fig:huffman}).
+%
+\begin{figure}[htbp]
+  \begin{center}
+%    \includegraphics{huffman.png}
+  \end{center}
+  \caption{Arbre de huffman}
+  \label{fig:huffman}
+\end{figure}
+%
+Une des propriété de cette suite est qu'elle n'est le prefixe d'aucune autres suites parmis les symboles de l'arbre. Pour compression un message, on ecrit juste cette suite pour chaque symbole du message. Pour décoder, on lit les bits un à un et on descend l'arbre en partant de la racine. Si le bit est un 0 on descend à gauche, sinon à droit. Quand on arrive à une feuille on l'ajoute à la sortie et on repart de la racine de l'arbre.
+Pour la construction de l'arbre, il y a un algorithme simple.
 
-DEFLATE is a lossless data compression algorithm that uses a combination of the LZ77 algorithm and Huffman coding => zipformat
+\begin{algorithm}[htbm]
+\SetLine
+\dontprintsemicolon
+%\KwData{this text}
+%\KwResult{how to write algorithm with \LaTeX2e }
+Setup $T_i$, $c_i$\;
+$x = x_0$\;
+Allocate $x_i$\;
+\While{$NbIter<MaxIter$}{
+  $x_i=T_ix+c_i$\;
+  \tcp{gather all the $x_i$ in $x$ for all the process} \;
+  MPI\_AllGather($x$,$x_i$)\;
+  \If{Global Convergence detected}{
+    return\;
+  }
+  NbIter++\;
+}
+\caption{Synchronous parallel iterative algorithm}
+\label{alg:IterSync}
+\end{algorithm}
+
+%http://en.wikipedia.org/wiki/Huffman_coding
+
+Un codeur legerement plus performant est le codage arithmetique. Cependant, il est plus complexe et protégé par des brevets dans beaucoup de pays. Huffman est donc toujours utilisé dans de nombreuse application.
+Un des problemes des modeles statistiques statique est qu'il faut envoyer les tables de frequence avec le message compressé pour que le decodeur puisse decompresser le message. Dans le cas de PPM, la taille de ces tables est loin d'etre négligeable.
+
+\subsection{Modeles adaptatifs}
+
+Les modèles 'adaptatif' ont la charactéristique de ne dependre que des symboles précédant celui à préduire, contrairement au modèles statiques qui doivent connaitre tout le message pour faire une prédiction. Cette notion est orthogonal avec celle de PPM. Un model PPM static doit connaitre tout le message. Ces modèles adaptatifs sont très utiles en compression car ils permettent de ne pas avoir à transmettre de trables statistiques.
+La methode la plus courament utilisée va être décrite. A l'ensemble des symboles pouvant être présent dans le message, on ajoute un nouveau symbole d'échapement. Initialement, la probabilité de tout les symboles sauf celui d'echapement est nulle. A chaque fois qu'on compresse un nouveau symbole, on met à jour les tables de probabilitées pour prendre en compte ce symbole. Quand on rencontre un symbole à probabilité nulle, on utilise à la place le symbole d'echapement puis on inscrit le nouveau symbole non compresser avant de reprendre la conpression comme avant. Le decodeur peut construire ses tables de probabilitées au fur et a mesure de la decompression car elles ne dépendent que de symboles deja decompressés.
+
+
+%http://en.wikipedia.org/wiki/PPM_compression_algorithm
+
+%DEFLATE is a lossless data compression algorithm that uses a combination of the LZ77 algorithm and Huffman coding => zipformat
+
+\subsection{Compression à dictionnaire}
+
+Il existe une autre grande classe de méthodes de compression très utilisées. Ce sont les méthodes à dictionnaire. Parmis celles-ci, LZ77 utilisé dans le format zip et LZW une methode simple et rapide (utiliser par certains fichier tiff).
+
+La méthode LZ77 (publié en 1977 par Lempel and Ziv) consiste à conserver les derniers symboles ecrits (2k à 32ko classiquement) et à remplacer quand c'est possible une serie de symboles par une réference à une serie de symboles précédente.
+
+La methode Lempel-Ziv-Welch (LZW) utilise un dictionnaire. Un dictionnaire associe un code (un entier) à une chaine de charactère. Initialement, le dictionnaire est chargé avec toutes les chaines de un charactère (tout les symboles). Pour encoder, on cherche la plus longue chaine du dictionnaire qui correspond aux symboles à encoder et on écrit son code puis on ajoute au dictionnaire cette chaine avec le charactère suivant.
+
+=>algo
+
+%http://www.stanford.edu/class/ee398a/handouts/papers/WittenACM87ArithmCoding.pdf
+%http://www.ics.uci.edu/~dan/pubs/DC-Sec4.html
+
+%http://en.wikipedia.org/wiki/Golomb_coding
+
+%http://en.wikipedia.org/wiki/Truncated_binary_encoding
+%http://en.wikipedia.org/wiki/Unary_coding
 
 \section{Fonctions Matlab}
 
@@ -88,24 +182,28 @@ cree function et function intern
 
 trouver lena plus petit
 
+fopen/fread/fclose
+
 \section{TD}
 
+Ecrire une fonction renvoyant creant les tables statiques d'ordre 0 (c'est à dire la probabilite d'apparation de chaque symbole dans un message sans contexte). On prendra comme alphabet les nombres de 0 à 255, ce qui correspond à un octet. Utiliser la pour ecrire une fonction calculant l'entropie de shannon basée sur ce modele. Calculer l'entropie d'une phrase, d'une image, d'un texte\dots
 
-\subsection{Compression sans perte}
-Ecrire une fonction renvoyant la probabilite statique d'apparation d'un symbole dans un message. On prendra comme alphabet les nombres de 0 à 255, ce qui correspond à un octet.
+\emph{L'entropie est en bit. Pour comparer avec la taille de l'entrée, il faut prendre en compte le facteur 8}
 
-Tracer le resultat pour l'image de lena et le texte
+Recommencer avec un model PPM d'ordre 1.
 
-calculer l'entropie du message ordre 0, ordre 1
+Ecrire une fonction qui construit l'arbre de huffman pour le model d'ordre 0. Ecrire les fonctions de compression/decompression. Comparer à l'entropie.
 
-message: texte, image, xml/html\dots
+Ecrire la compression/decompression LZW. Tester.
 
-donner la construction de l'arbre de huffman
+\begin{thebibliography}{9}
+  \bibitem{entropie} Entropie de Shanon, \\ \verb=http://en.wikipedia.org/wiki/Information_entropy=
+  \bibitem{huff} Algorithm de Huffman, \\ \verb=http://en.wikipedia.org/wiki/Huffman_coding=
+  \bibitem{ppm} Algorithme de compression PPM, \\ \verb=http://en.wikipedia.org/wiki/PPM_compression_algorithm=
+  \bibitem{Arith} Codeur Arithmetique, \\ \verb=http://www.stanford.edu/class/ee398a/handouts/papers/WittenACM87ArithmCoding.pdf=
+  \bibitem{PSNR} LZW, \\ \verb=http://en.wikipedia.org/wiki/Lzw=
+%  \bibitem{SSIM} SSIM, \\ \verb=http://www.cns.nyu.edu/~zwang/files/papers/ssim.html=
+\end{thebibliography}
 
-% biblio
-%http://en.wikipedia.org/wiki/Information_theory
-%http://www.cs.cmu.edu/afs/cs/project/pscico-guyb/realworld/www/compression.pdf
-%http://en.wikipedia.org/wiki/DEFLATE
-%http://en.wikipedia.org/wiki/JPEG
 
 \end{document}
