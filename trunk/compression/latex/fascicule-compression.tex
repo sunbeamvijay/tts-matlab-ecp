@@ -1,7 +1,7 @@
 \documentclass[12pt,a4paper]{article}
 \usepackage{latexsym}
 \usepackage{amsmath}
-\usepackage[dvips]{graphicx}
+\usepackage{graphicx}
 %\usepackage{times}
 \usepackage[latin1]{inputenc} % charactère accentué
 
@@ -96,34 +96,29 @@ Un codeur entropique très connu, est l'algorithme de Huffman. Il consiste à cree
 %
 \begin{figure}[htbp]
   \begin{center}
-%    \includegraphics{huffman.png}
+    \includegraphics[height=4cm]{huffman.png}
   \end{center}
   \caption{Arbre de huffman}
   \label{fig:huffman}
 \end{figure}
 %
 Une des propriété de cette suite est qu'elle n'est le prefixe d'aucune autres suites parmis les symboles de l'arbre. Pour compression un message, on ecrit juste cette suite pour chaque symbole du message. Pour décoder, on lit les bits un à un et on descend l'arbre en partant de la racine. Si le bit est un 0 on descend à gauche, sinon à droit. Quand on arrive à une feuille on l'ajoute à la sortie et on repart de la racine de l'arbre.
-Pour la construction de l'arbre, il y a un algorithme simple.
+Pour la construction de l'arbre, il y a un algorithme simple (algorithme \ref{alg:huff}). Chaque noeud de l'arbre contient en plus sa probabilité d'apparition. Pour une feuille, c'est la probabilité du symbole associé. Pour un noeud, c'est la somme des probabilitées de ses fils. L'algorithm utilise une liste de noeud.
 
 \begin{algorithm}[htbm]
 \SetLine
 \dontprintsemicolon
-%\KwData{this text}
-%\KwResult{how to write algorithm with \LaTeX2e }
-Setup $T_i$, $c_i$\;
-$x = x_0$\;
-Allocate $x_i$\;
-\While{$NbIter<MaxIter$}{
-  $x_i=T_ix+c_i$\;
-  \tcp{gather all the $x_i$ in $x$ for all the process} \;
-  MPI\_AllGather($x$,$x_i$)\;
-  \If{Global Convergence detected}{
-    return\;
+
+   Initialiser la liste avec tout les symboles comme noeud (feuille) \;
+  \While{la liste contient plus d'un element}{
+    Retirer les deux noeuds ayant les plus faibles probabilitées de la liste\;
+    Créer un nouveau noeud ayant pour fils les deux noeuds retirés\;
+    Ajouter le nouveau noeud à la liste\;
   }
-  NbIter++\;
-}
-\caption{Synchronous parallel iterative algorithm}
-\label{alg:IterSync}
+  Le seul noeud restant dans la liste est la racine de l'arbre\;
+
+\caption{Construction de l'arbre de huffman}
+\label{alg:huff}
 \end{algorithm}
 
 %http://en.wikipedia.org/wiki/Huffman_coding
@@ -147,9 +142,59 @@ Il existe une autre grande classe de méthodes de compression très utilisées. Ce 
 
 La méthode LZ77 (publié en 1977 par Lempel and Ziv) consiste à conserver les derniers symboles ecrits (2k à 32ko classiquement) et à remplacer quand c'est possible une serie de symboles par une réference à une serie de symboles précédente.
 
-La methode Lempel-Ziv-Welch (LZW) utilise un dictionnaire. Un dictionnaire associe un code (un entier) à une chaine de charactère. Initialement, le dictionnaire est chargé avec toutes les chaines de un charactère (tout les symboles). Pour encoder, on cherche la plus longue chaine du dictionnaire qui correspond aux symboles à encoder et on écrit son code puis on ajoute au dictionnaire cette chaine avec le charactère suivant.
+La methode Lempel-Ziv-Welch (LZW) utilise un dictionnaire. Un dictionnaire associe un code (un entier) à une chaine de charactère. Initialement, le dictionnaire est chargé avec toutes les chaines de un charactère (tout les symboles). Pour encoder, on cherche la plus longue chaine du dictionnaire qui correspond aux symboles à encoder et on écrit son code puis on ajoute au dictionnaire cette chaine avec le charactère suivant. L'algorithme \ref{alg:lzw-code} et l'algorithme \ref{alg:lzw-decode} décrive la procédure. \texttt{[a b]} représente la concaténation de a et b.
+% revoir
+Il y a un cas particulier auquel il faut faire attention pour la décompression. C'est le cas ou le compresseur rencontre cScSc, avec c un symbole et S une chaine de symboles quand cS est deja dans le dictionnaire.
+%
+Le decodeur sort le code pour cS  et ajoute cSc dans le dictionnaire. Ensuite, il voit cSc dans les symboles à encoder et il sort le nouveau symbole cSc. Or celui-ci n'est pas encore dans le dictionnaire du decodeur. Comme ce cas, est unique, le decodeur sait que s'il recoit un symbole qui n'est pas dans sont dictionaire, il doit considere que le charactere à ajouter est le premier de la chaine précedente.
 
-=>algo
+\begin{algorithm}[htbm]
+\SetLine
+\dontprintsemicolon
+
+  w = \texttt{''}\;
+  \While{Il reste un symbole c en entrée}{
+  \eIf{[w c] est dans le dictionnaire}{
+    w = [w c]\;
+    }{
+    Inserer [w c] dans le dictionnaire\;
+    ecrire en sortie le code associé à w\;
+    w = c\;
+    }
+  }
+  ecrire en sortie le code associé à w\;
+
+\caption{Compression LZW}
+\label{alg:lzw-code}
+\end{algorithm}
+
+\begin{algorithm}[htbm]
+\SetLine
+\dontprintsemicolon
+
+   Lire un code k\;
+   Ajouter k à la chaine de sortie (k est forcement un symbole)\;
+   w = k\;
+  \While{Il reste un code k en entrée}{
+  \eIf{k$>$ nombre de symbole dans l'alphabet (256)}{
+  \eIf{k existe dans le dictionnaire}{
+    e = dictionnaire(k)\;
+    }{
+    \tcc{Le cas particulier discuté plus haut}
+    e = [w w(0)]\;
+    }
+    }{
+    \tcc{Ici, on peut directement convertir le code k en symbole}
+    e = k\;
+    }
+    Ajouter e à la sortie\;
+    Inserer [w e(0)] au dictionaire\;
+    w = e\;
+  }
+
+\caption{Decompression LZW}
+\label{alg:lzw-decode}
+\end{algorithm}
 
 %http://www.stanford.edu/class/ee398a/handouts/papers/WittenACM87ArithmCoding.pdf
 %http://www.ics.uci.edu/~dan/pubs/DC-Sec4.html
@@ -161,28 +206,7 @@ La methode Lempel-Ziv-Welch (LZW) utilise un dictionnaire. Un dictionnaire assoc
 
 \section{Fonctions Matlab}
 
-sum
-zeros
-
-==, >, < vectorialise
-
-plot, bar
-
-sort
-
-isstruct
-
-\{ \} => cells
-
-reshape
-
-char
-
-cree function et function intern
-
-trouver lena plus petit
-
-fopen/fread/fclose
+isstruct, min, fopen, fread, fclose
 
 \section{TD}
 
@@ -192,15 +216,32 @@ Ecrire une fonction renvoyant creant les tables statiques d'ordre 0 (c'est à dir
 
 Recommencer avec un model PPM d'ordre 1.
 
-Ecrire une fonction qui construit l'arbre de huffman pour le model d'ordre 0. Ecrire les fonctions de compression/decompression. Comparer à l'entropie.
+Ecrire une fonction qui construit l'arbre de huffman pour le model d'ordre 0. Pour representer un noeud, il est conseiller d'utiliser un structure. Une structure est simplement une variable qui contient des champs. Il suffit de faire \texttt{a.b=1} pour creer une structure a avec un champ b ou ajouter un champ b a une structure existante. La fonction \texttt{min} peut renvoyer l'index du minimum.
 
-Ecrire la compression/decompression LZW. Tester.
+Ecrire les fonctions de compression/decompression. Pour accelerer la compression, il est conseiller de calculer la chaine de bit associée avec chaque symbole une fois au debut et non pas à chaque fois qu'il faut encoder le symbole. Pour la decompression, on peut faire le meme genre de chose, mais c'est un peu plus compliqué.
+
+Comparer la taille du flux compresser par huffman à l'entropie. Remarques.
+
+Ecrire la compression/decompression LZW. Vous pourrez utiliser la fonction \texttt{create\_dico} fournie. Elle est très basique, mais suffisament rapide pour nos besoin. Voici un exemple d'utilisation:
+\begin{verbatim}
+dico = create_dico();
+dico = dico.Insert(dico, 'ma chaine de charactère');
+k=dico.Find(dico,'ma chaine de charactère');
+if isempty(k)
+  error('chaine non trouvé');
+end
+chaine = dico.Get(dico,k);
+\end{verbatim}
+Pour concatener deux chaines ou charactères, vous pouver simplement faire \texttt{[a, b]}.
+
+Comparer le taux de compression avec celui de huffman. Conclusion.
 
 \begin{thebibliography}{9}
   \bibitem{entropie} Entropie de Shanon, \\ \verb=http://en.wikipedia.org/wiki/Information_entropy=
   \bibitem{huff} Algorithm de Huffman, \\ \verb=http://en.wikipedia.org/wiki/Huffman_coding=
   \bibitem{ppm} Algorithme de compression PPM, \\ \verb=http://en.wikipedia.org/wiki/PPM_compression_algorithm=
-  \bibitem{Arith} Codeur Arithmetique, \\ \verb=http://www.stanford.edu/class/ee398a/handouts/papers/WittenACM87ArithmCoding.pdf=
+  \bibitem{Arith} Codeur Arithmetique, \\ \verb=http://www.stanford.edu/class/ee398a/handouts/papers/=
+              \verb=WittenACM87ArithmCoding.pdf=
   \bibitem{PSNR} LZW, \\ \verb=http://en.wikipedia.org/wiki/Lzw=
 %  \bibitem{SSIM} SSIM, \\ \verb=http://www.cns.nyu.edu/~zwang/files/papers/ssim.html=
 \end{thebibliography}
