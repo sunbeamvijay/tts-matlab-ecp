@@ -14,14 +14,14 @@ function [ out ] = lzw_code( I )
         k=dico.Find(dico,wc);
         if isempty(k)
             dico = dico.Insert(dico,wc);
-            out(out_pos)=dico.Find(dico,w);
+            out(out_pos)=dico.Find(dico,w)-1;
             out_pos=out_pos+1;
             w=I(i);
         else
             w = wc;
         end
     end
-    out(out_pos)=dico.Find(dico,w);
+    out(out_pos)=dico.Find(dico,w)-1;
     out = out(1:out_pos);
     
 %    w = NIL;

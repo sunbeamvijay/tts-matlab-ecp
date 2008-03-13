@@ -8,19 +8,19 @@ function [ out ] = lzw_decode( I ,len)
     
     dico = create_dico();
     
-    w=I(1)-1;
+    w=I(1);
     out(1)=w;
     out_pos=2;
     for i=2:N
         k= I(i);
         if k>255
             if k<dico.numb_entry
-                e = dico.Get(dico,k);
+                e = dico.Get(dico,k+1);
             else
                 e= [w w(1)];
             end
         else
-            e=k-1;
+            e=k;
         end
         L = length(e);
         out(out_pos:out_pos+L-1) = e;
